@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Baked By Fairiko — Baked Goods & Coffee</title>
+    <meta name="description"
+        content="Minimal, cozy European-style bakery serving cakes, pastries, croissants, pies, donuts, and coffee brews." />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --ink: #111;
+            --paper: #fafafa;
+            --cream: #faf3e7;
+            /* warm butter-cream */
+            --cream-rgb: 250, 243, 231;
+        }
+
+        html,
+        body {
+            background: var(--paper);
+            color: var(--ink);
+        }
+
+        .serif {
+            font-family: "Playfair Display", serif;
+        }
+
+        .sans {
+            font-family: "Inter", system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .card {
+            background: var(--cream);
+            border: 1px solid rgba(0, 0, 0, .08);
+            border-radius: 1.25rem;
+        }
+
+        .bg-soft {
+            background-color: var(--cream);
+        }
+
+        .bg-soft-90 {
+            background-color: rgba(var(--cream-rgb), .90);
+        }
+
+        .ink-border {
+            border: 1px solid rgba(0, 0, 0, .12);
+        }
+
+        /* Background image */
+        body {
+            background: var(--paper) url("assets/BG.jpg") no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, .72);
+            z-index: -1;
+        }
+
+        /* Pop hover */
+        .pop {
+            transition: transform .22s cubic-bezier(.2, .6, .2, 1), box-shadow .22s ease, background-color .22s ease, color .22s ease;
+            will-change: transform;
+        }
+
+        .pop:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .10), 0 2px 6px rgba(0, 0, 0, .06);
+        }
+
+        .pop:active {
+            transform: translateY(-1px) scale(.995);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .75rem 1.25rem;
+            border-radius: 9999px;
+        }
+
+        .btn-outline {
+            border: 1px solid rgba(0, 0, 0, .12);
+        }
+
+        .btn-solid {
+            background: black;
+            color: white;
+        }
+
+        .btn-solid:hover {
+            filter: brightness(.95);
+        }
+
+        .btn-outline:hover {
+            background: black;
+            color: white;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid black;
+            outline-offset: 2px;
+        }
+
+        /* Cart drawer */
+        .drawer {
+            transform: translateX(100%);
+            transition: transform .25s ease;
+        }
+
+        .drawer.open {
+            transform: translateX(0);
+        }
+
+        /* Small utility for monospace in summary */
+        .mono {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+
+    <!-- Social share (optional) -->
+    <meta property="og:title" content="Baked By Fairiko — Baked Goods & Coffee">
+    <meta property="og:description"
+        content="Cakes, pastries, croissants, pies, donuts, and coffee brews. Minimal & cozy.">
+    <meta property="og:type" content="website">
+</head>
+
+<body class="sans">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-[var(--paper)]/90 backdrop-blur border-b border-black/5">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="#home" class="flex items-center gap-3">
+                <img src="assets/logo.png" alt="Baked By logo" class="h-10 w-10 object-contain">
+                <span class="serif text-xl tracking-wide">Baked By Fairiko</span>
+            </a>
+            <!-- gap reduced from gap-6 to gap-4 -->
+            <nav class="hidden md:flex items-center gap-4 text-sm">
+                <a href="#menu" class="hover:opacity-70">Menu</a>
+                <a href="#gallery" class="hover:opacity-70">Gallery</a>
+                <a href="#about" class="hover:opacity-70">About</a>
+                <a href="#visit" class="hover:opacity-70">Visit</a>
+                <a href="#order" class="btn btn-outline pop">Order</a>
+
+                <!-- Cart button -->
+                <button id="cartBtn" class="btn btn-outline pop relative" aria-label="Open cart">
+                    Cart
+                    <span id="cartCount"
+                        class="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs rounded-full bg-black text-white">0</span>
+                </button>
+            </nav>
+            <button id="navBtn" class="md:hidden ink-border rounded-full w-10 h-10 grid place-items-center"
+                aria-label="Open menu">☰</button>
+        </div>
+        <div id="mobileNav" class="md:hidden hidden border-t border-black/5 px-4 pb-4">
+            <div class="flex flex-col gap-3 pt-3 text-sm">
+                <a href="#menu">Menu</a>
+                <a href="#gallery">Gallery</a>
+                <a href="#about">About</a>
+                <a href="#visit">Visit</a>
+                <a href="#order" class="btn btn-outline pop">Order</a>
+                <button id="cartBtnMobile" class="btn btn-outline pop mt-2" aria-label="Open cart">Cart
+                    <span id="cartCountMobile" class="ml-1 text-xs rounded-full bg-black text-white px-2">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Cart Overlay + Drawer -->
+    <div id="cartOverlay" class="fixed inset-0 hidden bg-black/40"></div>
+    <aside id="cartDrawer"
+        class="drawer fixed right-0 top-0 h-full w-full max-w-md bg-soft shadow-2xl border-l border-black/10 z-50 flex flex-col">
+        <div class="px-5 py-4 border-b border-black/10 flex items-center justify-between">
+            <h3 class="serif text-2xl">Cart</h3>
+            <button id="closeCart" class="btn btn-outline pop">Close</button>
+        </div>
+
+        <div id="cartItems" class="flex-1 overflow-auto p-5 space-y-4">
+            <!-- items render here -->
+        </div>
+
+        <div class="border-t border-black/10 p-5">
+            <div class="flex items-center justify-between text-lg mb-3">
+                <span class="font-semibold">Total</span>
+                <span id="cartTotal" class="font-semibold mono">৳ 0</span>
+            </div>
+            <div class="flex gap-2">
+                <button id="clearCart" class="btn btn-outline pop flex-1">Clear</button>
+                <a href="#order" id="checkout" class="btn btn-solid pop flex-1 text-center">Checkout</a>
+            </div>
+            <p class="text-xs text-black/60 mt-2">Tip: “Checkout” scrolls to the Pre-Order form below.</p>
+        </div>
+    </aside>
+
+    <!-- Hero -->
+    <section id="home" class="max-w-6xl mx-auto px-4 py-20 md:py-28">
+        <div class="grid md:grid-cols-2 items-center gap-10">
+            <div>
+                <p class="uppercase tracking-widest text-xs text-black/60">Baked Goods & Coffee</p>
+                <h1 class="serif text-5xl md:text-6xl leading-tight mt-3">Minimal. Cozy. Fresh daily.</h1>
+                <p class="mt-6 text-black/70 text-lg max-w-prose">
+                    European-style breads and pastries baked in small batches. Cakes, croissants, pies, donuts — paired
+                    with slow, honest coffee.
+                </p>
+                <div class="flex gap-3 mt-8">
+                    <a href="#menu" class="btn btn-solid pop">View Menu</a>
+                    <a href="#order" class="btn btn-outline pop">Pre-Order</a>
+                </div>
+                <div class="flex gap-6 items-center mt-8 text-sm text-black/60">
+                    <span>Open daily • 8am–9pm</span>
+                    <span>Dhaka</span>
+                </div>
+            </div>
+
+            <div class="card p-6 pop">
+                <div class="aspect-[4/3] w-full rounded-xl overflow-hidden bg-soft grid place-items-center">
+                    <img src="assets/logo.png" alt="Emblem" class="h-64 md:h-72 object-contain opacity-90">
+                </div>
+                <div class="grid grid-cols-3 gap-4 mt-6 text-center text-sm">
+                    <div class="p-4 rounded-xl ink-border pop">
+                        <p class="font-semibold">Cakes</p>
+                        <p class="text-black/60 mt-1">Classic & Custom</p>
+                    </div>
+                    <div class="p-4 rounded-xl ink-border pop">
+                        <p class="font-semibold">Viennoiserie</p>
+                        <p class="text-black/60 mt-1">Croissants</p>
+                    </div>
+                    <div class="p-4 rounded-xl ink-border pop">
+                        <p class="font-semibold">Coffee</p>
+                        <p class="text-black/60 mt-1">Espresso / Pour-over</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu -->
+    <section id="menu" class="bg-soft-90 backdrop-blur-sm border-y border-black/5">
+        <div class="max-w-6xl mx-auto px-4 py-16">
+            <div class="flex items-end justify-between gap-6">
+                <h2 class="serif text-4xl">Menu Highlights</h2>
+                <a href="#order" class="hidden md:inline-flex btn btn-outline pop">Pre-Order</a>
+            </div>
+
+            <!-- Custom Cake Builder -->
+            <div class="card p-6 mt-8 pop">
+                <h3 class="serif text-2xl">Custom Cake</h3>
+                <p class="text-black/70 mt-2">Build a cake and add it to your cart. Perfect for combining with other
+                    items.</p>
+                <div class="grid md:grid-cols-4 gap-4 mt-4">
+                    <label class="block text-sm">Size
+                        <select id="cakeSize" class="mt-1 w-full border rounded-lg px-3 py-2">
+                            <option value="6" data-price="2200">6" — ৳ 2200</option>
+                            <option value="8" data-price="3200">8" — ৳ 3200</option>
+                            <option value="10" data-price="4400">10" — ৳ 4400</option>
+                        </select>
+                    </label>
+                    <label class="block text-sm md:col-span-2">Flavor / Notes
+                        <input id="cakeFlavor" placeholder="Vanilla, chocolate, berries…"
+                            class="mt-1 w-full border rounded-lg px-3 py-2" />
+                    </label>
+                    <label class="block text-sm">Date
+                        <input id="cakeDate" type="date" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                    </label>
+                </div>
+                <label class="block text-sm mt-4">Short message on cake (optional)
+                    <input id="cakeMsg" maxlength="40" placeholder="Happy Birthday Ayaan"
+                        class="mt-1 w-full border rounded-lg px-3 py-2" />
+                </label>
+                <button id="addCustomCake" class="btn btn-outline pop mt-4">Add Custom Cake to Cart</button>
+            </div>
+
+            <!-- Regular Items -->
+            <div class="grid md:grid-cols-3 gap-6 mt-10">
+                <article class="card p-6 pop">
+                    <h3 class="serif text-2xl">Croissant</h3>
+                    <p class="text-black/70 mt-2">Hand-laminated, buttery layers. Almond / Chocolate.</p>
+                    <p class="mt-4 font-semibold">৳ 180</p>
+                    <button class="btn btn-outline pop mt-4 add-to-cart" data-name="Croissant" data-price="180">Add to
+                        Cart</button>
+                </article>
+
+                <article class="card p-6 pop">
+                    <h3 class="serif text-2xl">Signature Cake (6")</h3>
+                    <p class="text-black/70 mt-2">Vanilla sponge, mascarpone cream, seasonal fruit.</p>
+                    <p class="mt-4 font-semibold">৳ 2200</p>
+                    <button class="btn btn-outline pop mt-4 add-to-cart" data-name="Signature Cake 6&quot;"
+                        data-price="2200">Add to Cart</button>
+                </article>
+
+                <article class="card p-6 pop">
+                    <h3 class="serif text-2xl">Hand-Brew Coffee</h3>
+                    <p class="text-black/70 mt-2">Single-origin pour-over.</p>
+                    <p class="mt-4 font-semibold">৳ 260</p>
+                    <button class="btn btn-outline pop mt-4 add-to-cart" data-name="Hand-Brew Coffee"
+                        data-price="260">Add to Cart</button>
+                </article>
+
+                <article class="card p-6 pop">
+                    <h3 class="serif text-2xl">Donuts</h3>
+                    <p class="text-black/70 mt-2">Brioche donuts — glaze / cinnamon.</p>
+                    <p class="mt-4 font-semibold">৳ 150</p>
+                    <button class="btn btn-outline pop mt-4 add-to-cart" data-name="Donuts" data-price="150">Add to
+                        Cart</button>
+                </article>
+
+                <article class="card p-6 pop">
+                    <h3 class="serif text-2xl">Seasonal Pie</h3>
+                    <p class="text-black/70 mt-2">Apple, berry, or lemon tart.</p>
+                    <p class="mt-4 font-semibold">৳ 900</p>
+                    <button class="btn btn-outline pop mt-4 add-to-cart" data-name="Seasonal Pie" data-price="900">Add
+                        to Cart</button>
+                </article>
+
+                <article class="card p-6 pop">
+                    <h3 class="serif text-2xl">Affogato</h3>
+                    <p class="text-black/70 mt-2">Espresso over vanilla gelato.</p>
+                    <p class="mt-4 font-semibold">৳ 320</p>
+                    <button class="btn btn-outline pop mt-4 add-to-cart" data-name="Affogato" data-price="320">Add to
+                        Cart</button>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="max-w-6xl mx-auto px-4 py-16">
+        <h2 class="serif text-4xl">A Peek Inside</h2>
+        <p class="text-black/70 mt-2">Muted tones, natural textures, the scent of butter & espresso.</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div class="aspect-square bg-soft-90 backdrop-blur border rounded-xl overflow-hidden pop">
+                <img src="assets/croissant.jpg" alt="Fresh croissants" class="w-full h-full object-cover">
+            </div>
+            <div class="aspect-square bg-soft-90 backdrop-blur border rounded-xl overflow-hidden pop">
+                <img src="assets/expresso.jpg" alt="Hot expresso" class="w-full h-full object-cover">
+            </div>
+            <div class="aspect-square bg-soft-90 backdrop-blur border rounded-xl overflow-hidden pop">
+                <img src="assets/pastry.jpg" alt="Pastries in display" class="w-full h-full object-cover">
+            </div>
+            <div class="aspect-square bg-soft-90 backdrop-blur border rounded-xl overflow-hidden pop">
+                <img src="assets/pie.jpg" alt="Homemade pie" class="w-full h-full object-cover">
+            </div>
+        </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="bg-soft-90 backdrop-blur-sm border-y border-black/5">
+        <div class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-10 items-center">
+            <div>
+                <h2 class="serif text-4xl">Our Story</h2>
+                <p class="text-black/70 mt-4 leading-relaxed">
+                    Inspired by Italian and French cafés, we bake with patience and precision — lean doughs, cultured
+                    butter, and slow-fermented flavor. Honest ingredients, clean design, and a calm space to pause.
+                </p>
+                <ul class="mt-6 space-y-2 text-black/80">
+                    <li>• Daily small-batch pastries</li>
+                    <li>• Locally roasted beans</li>
+                    <li>• Custom cakes by preorder</li>
+                </ul>
+            </div>
+            <div class="card p-6 pop">
+                <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-soft">
+                    <img src="assets/CoffeeXStory.jpg" alt="Our cozy café interior" class="w-full h-full object-cover">
+                </div>
+                <p class="text-black/70 text-sm mt-4 leading-relaxed">
+                    Our kitchen is designed for homemade baking — cozy, simple, and filled with the warm aroma of butter
+                    and coffee.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visit -->
+    <section id="visit" class="max-w-6xl mx-auto px-4 py-16">
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="card p-6 pop">
+                <h3 class="serif text-2xl">Hours</h3>
+                <p class="mt-3">Mon–Sun: 8am–9pm</p>
+            </div>
+
+            <div class="p-6 rounded-xl bg-[#fdf8f3] border">
+                <h3 class="serif text-xl">Service Area</h3>
+                <p class="mt-2">Bashundhara R/A, Dhaka, Bangladesh</p>
+                <p class="text-black/60 text-sm">Currently delivering only inside Bashundhara R/A.</p>
+            </div>
+
+            <div class="card p-6 pop">
+                <h3 class="serif text-2xl">Contact</h3>
+                <p class="mt-3">Phone: +880178-3152288</p>
+                <p class="mt-1">Instagram: @bakedbyfairiko</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order (Pre-Order form showing cart items + rush option) -->
+    <section id="order" class="bg-soft-90 backdrop-blur-sm border-y border-black/5">
+        <div class="max-w-3xl mx-auto px-4 py-16">
+            <h2 class="serif text-4xl">Custom Cakes & Pre-Orders</h2>
+            <p class="text-black/70 mt-2">Tell us what you have in mind. We’ll confirm within 6 to 8 hours.</p>
+
+            <form name="order" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+                class="mt-8 grid md:grid-cols-2 gap-4 card p-6 pop">
+                <input type="hidden" name="form-name" value="order">
+                <p class="hidden"><label>Don’t fill this out: <input name="bot-field"></label></p>
+
+                <!-- Contact -->
+                <label class="block text-sm">Name<input required name="name"
+                        class="mt-1 w-full border rounded-lg px-3 py-2" /></label>
+                <label class="block text-sm">Email<input required type="email" name="email"
+                        class="mt-1 w-full border rounded-lg px-3 py-2" /></label>
+                <label class="block text-sm">Phone<input name="phone"
+                        class="mt-1 w-full border rounded-lg px-3 py-2" /></label>
+
+                <!-- Rush toggle -->
+                <div class="md:col-span-2 flex items-start gap-3 bg-soft rounded-lg p-3 border">
+                    <input type="checkbox" id="rush" name="rush_order" value="Yes" class="mt-1">
+                    <div>
+                        <label for="rush" class="font-medium">Emergency delivery (within 4 hours)</label>
+                        <p class="text-sm text-black/60">Adds a 15% rush fee. We’ll confirm availability.</p>
+
+                        <div id="rushCalc" class="text-sm mt-1 hidden mono">
+                            <span>Cart total:</span> <span id="rcCart">৳ 0</span> •
+                            <span>Rush fee (15%):</span> <span id="rcFee">৳ 0</span> •
+                            <span><strong>Estimated total:</strong></span> <span id="rcTotal">৳ 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order details -->
+                <label class="md:col-span-2 block text-sm">Custom cake details (if any)
+                    <textarea name="details" rows="4" class="mt-1 w-full border rounded-lg px-3 py-2"
+                        placeholder='Cake size/flavor, message, delivery date/time, address'></textarea>
+                </label>
+
+                <!-- Cart summary (read-only, auto-generated) -->
+                <div class="md:col-span-2 bg-soft rounded-lg p-4 border">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold">Your items</h3>
+                        <a href="#menu" class="text-sm underline">Add more</a>
+                    </div>
+                    <div id="orderCartList" class="text-sm mt-2 space-y-1">
+                        <!-- summary lines -->
+                    </div>
+                </div>
+
+                <!-- Hidden fields sent to Netlify -->
+                <input type="hidden" name="cart_total_bdt" id="cartTotalInput" />
+                <input type="hidden" name="rush_fee_bdt" id="rushFeeInput" />
+                <input type="hidden" name="estimated_total_bdt" id="estTotalInput" />
+                <input type="hidden" name="cart_items_json" id="cartItemsInput" />
+
+                <button class="md:col-span-2 btn btn-solid pop">Send</button>
+            </form>
+
+            <p class="text-xs text-black/50 mt-3">Savor your brew, embrace bliss, spread warmth</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl mx-auto px-4 py-10 text-sm text-black/60">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <p>© 2025 Baked By Fairiko</p>
+            <a href="#home" class="btn btn-outline pop">Back to top</a>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile nav
+        const navBtn = document.getElementById('navBtn');
+        const mobileNav = document.getElementById('mobileNav');
+        navBtn?.addEventListener('click', () => mobileNav.classList.toggle('hidden'));
+
+        // --- Cart state helpers ---
+        const CART_KEY = 'bbf_cart_v1';
+        const qsa = s => Array.from(document.querySelectorAll(s));
+        const $ = s => document.querySelector(s);
+
+        function loadCart() { try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; } }
+        function saveCart(items) { localStorage.setItem(CART_KEY, JSON.stringify(items)); }
+
+        function addItem(name, price, meta = {}) {
+            const items = loadCart();
+            const sig = JSON.stringify({ name, price, meta });
+            const found = items.find(i => JSON.stringify({ name: i.name, price: i.price, meta: i.meta || {} }) === sig);
+            if (found) found.qty += 1; else items.push({ name, price, qty: 1, meta });
+            saveCart(items); renderCart();
+        }
+        function removeItem(name, price, meta = {}) {
+            let items = loadCart().filter(i => !(i.name === name && i.price === price && JSON.stringify(i.meta || {}) === JSON.stringify(meta)));
+            saveCart(items); renderCart();
+        }
+        function changeQty(name, price, delta, meta = {}) {
+            const items = loadCart();
+            const it = items.find(i => i.name === name && i.price === price && JSON.stringify(i.meta || {}) === JSON.stringify(meta));
+            if (!it) return;
+            it.qty += delta;
+            if (it.qty <= 0) { items.splice(items.indexOf(it), 1); }
+            saveCart(items); renderCart();
+        }
+        function formatBDT(n) { return '৳ ' + Number(n).toLocaleString('en-BD'); }
+        function getCartTotal() {
+            const items = loadCart();
+            return items.reduce((a, b) => a + (Number(b.price) || 0) * (Number(b.qty) || 0), 0);
+        }
+
+        // Attach Add-to-cart listeners for regular items
+        qsa('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const name = btn.dataset.name;
+                const price = Number(btn.dataset.price || 0);
+                addItem(name, price);
+                openCart();
+            });
+        });
+
+        // Custom Cake builder -> Add to cart
+        const sizeSel = $('#cakeSize'), flavorInp = $('#cakeFlavor'), msgInp = $('#cakeMsg'), dateInp = $('#cakeDate');
+        $('#addCustomCake')?.addEventListener('click', () => {
+            const opt = sizeSel.options[sizeSel.selectedIndex];
+            const size = opt.value;
+            const price = Number(opt.dataset.price || 0);
+            const flavor = flavorInp.value.trim();
+            const message = msgInp.value.trim();
+            const date = dateInp.value;
+
+            const name = `Custom Cake ${size}"${flavor ? " — " + flavor : ""}${message ? " (“" + message + "”)" : ""}${date ? " [" + date + "]" : ""}`;
+            const meta = { type: 'custom_cake', size, flavor, message, date };
+            addItem(name, price, meta);
+            openCart();
+        });
+
+        // Drawer open/close
+        const cartBtn = document.getElementById('cartBtn');
+        const cartBtnMobile = document.getElementById('cartBtnMobile');
+        const cartDrawer = document.getElementById('cartDrawer');
+        const cartOverlay = document.getElementById('cartOverlay');
+        const closeCartBtn = document.getElementById('closeCart');
+        function openCart() { cartDrawer.classList.add('open'); cartOverlay.classList.remove('hidden'); }
+        function closeCart() { cartDrawer.classList.remove('open'); cartOverlay.classList.add('hidden'); }
+        cartBtn?.addEventListener('click', openCart);
+        cartBtnMobile?.addEventListener('click', openCart);
+        closeCartBtn?.addEventListener('click', closeCart);
+        cartOverlay?.addEventListener('click', closeCart);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCart(); });
+
+        // Render cart (drawer)
+        function renderCart() {
+            const items = loadCart();
+
+            // Update badges
+            const count = items.reduce((a, b) => a + b.qty, 0);
+            const headerBadge = document.getElementById('cartCount');
+            const headerBadgeMob = document.getElementById('cartCountMobile');
+            if (headerBadge) headerBadge.textContent = count;
+            if (headerBadgeMob) headerBadgeMob.textContent = count;
+
+            // Build list
+            const list = document.getElementById('cartItems');
+            list.innerHTML = '';
+            if (items.length === 0) {
+                list.innerHTML = '<p class="text-black/60">Cart is empty. Add something delicious ✨</p>';
+            } else {
+                items.forEach(it => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-start justify-between gap-3 p-4 rounded-xl bg-soft border';
+                    const metaSmall = it.meta?.type === 'custom_cake'
+                        ? `<p class="text-black/50 text-xs">${it.meta.size}" • ${it.meta.flavor || '—'} ${it.meta.message ? '• “' + it.meta.message + '”' : ''} ${it.meta.date ? '• ' + it.meta.date : ''}</p>`
+                        : '';
+                    row.innerHTML = `
+            <div>
+              <p class="font-semibold">${it.name}</p>
+              ${metaSmall}
+              <p class="text-black/60 text-sm">${formatBDT(it.price)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-outline pop px-3 py-1" aria-label="Decrease">−</button>
+              <span class="min-w-6 text-center">${it.qty}</span>
+              <button class="btn btn-outline pop px-3 py-1" aria-label="Increase">+</button>
+              <button class="btn btn-outline pop px-3 py-1" aria-label="Remove">Remove</button>
+            </div>
+          `;
+                    const btns = row.querySelectorAll('button');
+                    const decBtn = btns[0], incBtn = btns[1], removeBtn = btns[2];
+                    decBtn.addEventListener('click', () => changeQty(it.name, it.price, -1, it.meta || {}));
+                    incBtn.addEventListener('click', () => changeQty(it.name, it.price, +1, it.meta || {}));
+                    removeBtn.addEventListener('click', () => removeItem(it.name, it.price, it.meta || {}));
+
+                    list.appendChild(row);
+                });
+            }
+
+            // Total
+            const total = items.reduce((a, b) => a + b.price * b.qty, 0);
+            document.getElementById('cartTotal').textContent = formatBDT(total);
+
+            // Keep order form summary in sync
+            updateOrderSummary();
+            updateRushUI();
+        }
+
+        document.getElementById('clearCart')?.addEventListener('click', () => { saveCart([]); renderCart(); });
+
+        // ---- Rush (Emergency) 15% & Order summary (in form) ----
+        const rush = document.getElementById('rush');
+        const rcWrap = document.getElementById('rushCalc');
+        const rcCart = document.getElementById('rcCart');
+        const rcFee = document.getElementById('rcFee');
+        const rcTotal = document.getElementById('rcTotal');
+        const cartTotalInput = document.getElementById('cartTotalInput');
+        const rushFeeInput = document.getElementById('rushFeeInput');
+        const estTotalInput = document.getElementById('estTotalInput');
+        const cartItemsInput = document.getElementById('cartItemsInput');
+
+        function updateOrderSummary() {
+            const items = loadCart();
+            const list = document.getElementById('orderCartList');
+            if (!list) return;
+            list.innerHTML = items.length
+                ? items.map(i => {
+                    const meta = i.meta?.type === 'custom_cake'
+                        ? ` — ${i.meta.size}"${i.meta.flavor ? ' • ' + i.meta.flavor : ''}${i.meta.message ? ' • “' + i.meta.message + '”' : ''}${i.meta.date ? ' • ' + i.meta.date : ''}`
+                        : '';
+                    return `<div class="flex justify-between"><span>${i.name}${meta} × ${i.qty}</span><span class="mono">${formatBDT(i.price * i.qty)}</span></div>`;
+                }).join('')
+                : '<p class="text-black/60">No items yet. Add a custom cake above or pick items from the menu.</p>';
+
+            if (cartItemsInput) cartItemsInput.value = JSON.stringify(items);
+        }
+
+        function updateRushUI() {
+            if (!rush) return;
+            const cartTotal = getCartTotal();
+            const fee = Math.round(cartTotal * 0.15);
+            const est = rush.checked ? cartTotal + fee : cartTotal;
+
+            rcWrap?.classList.toggle('hidden', !rush.checked);
+            if (rcCart) rcCart.textContent = formatBDT(cartTotal);
+            if (rcFee) rcFee.textContent = formatBDT(fee);
+            if (rcTotal) rcTotal.textContent = formatBDT(est);
+
+            if (cartTotalInput) cartTotalInput.value = cartTotal;
+            if (rushFeeInput) rushFeeInput.value = rush.checked ? fee : 0;
+            if (estTotalInput) estTotalInput.value = est;
+        }
+
+        rush?.addEventListener('change', updateRushUI);
+
+        // Initial render & sync
+        renderCart();
+    </script>
+</body>
+
+</html>
